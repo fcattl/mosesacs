@@ -1,19 +1,14 @@
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-
 import org.mortbay.jetty.HttpConnection;
 import org.mortbay.jetty.Request;
-
-
 import org.mortbay.jetty.handler.AbstractHandler
-import cwmp.CWMPMessage
 import javax.servlet.http.Cookie
-import java.security.MessageDigest;
+import java.security.MessageDigest
 
-class CWMPHandler extends AbstractHandler
-{
+
+class CWMPHandler extends AbstractHandler {
 
     public void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) throws IOException, ServletException {
 
@@ -111,7 +106,7 @@ class CWMPHandler extends AbstractHandler
                 println "New connection from CPE (sn ${cpe.serial}) with sw ${cpe.softwareVersion} and eventCodes [${cpe.lastEventCodes}]"
 
                 // build response
-                MessageFactoryService mf = new MessageFactoryService()
+                CWMPMessageFactory mf = new CWMPMessageFactory()
 
                 println "Sending InformResponse, cookie = <${cpe.cookie}>"
                 response.addCookie(cookie)

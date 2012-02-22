@@ -2,13 +2,7 @@
 import groovy.xml.XmlUtil
 import groovy.xml.StreamingMarkupBuilder
 
-class MessageFactoryService {
-
-    static transactional = true
-
-    def serviceMethod() {
-
-    }
+class CWMPMessageFactory {
 
     String InformResponse() {
         def builder = new StreamingMarkupBuilder()
