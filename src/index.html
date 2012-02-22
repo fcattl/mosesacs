@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title></title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            try {
+                ws = new WebSocket('ws://127.0.0.1:9999');
+
+                ws.onopen = function() {
+                }
+
+                ws.onmessage = function(e) {
+                    console.debug(e.data);
+                    $("#text").append(e.data + "\n");
+                }
+
+                ws.onclose = function() {
+                    ws= null;
+                }
+            } catch (e) {
+                console.debug("Errore");
+            }
+
+            $('#txt').keydown(function(e) {
+                if (e.keyCode == 9) {
+                    var cmd = $("#txt").val();
+                    var cmds = new Array("readMib", "writeMib", "getParameterValues", "addObject", "deleteObject");
+                    var idx = 0;
+                    for (var c in cmds) {
+                        if (cmds[c] == cmd) {
+                            idx = parseInt(c) + 1;
+                        }
+                    }
+                    $("#txt").val(cmds[idx]);
+                    return false;
+                }
+            });
+
+        });
+
+        function go(val) {
+            ws.send(val);
+
+        }
+
+        function complete() {
+
+        }
+    </script>
+
+    <input type="text" id="txt" onclick="complete()" style="font-size: 20px; width: 600px"><hr>
+
+    <input type="text" id="in" onchange="go($(this).val());">
+    <textarea id="text"></textarea>
+
+</body>
+</html>
