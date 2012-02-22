@@ -107,8 +107,12 @@ class CWMPHandler extends AbstractHandler {
 
                 // build response
                 CWMPMessageFactory mf = new CWMPMessageFactory()
-
+                Registry registry = Registry.getInstance()
+                
                 println "Sending InformResponse, cookie = <${cpe.cookie}>"
+                registry.ws.sendToAll "New connection from CPE (sn ${cpe.serial}) with sw ${cpe.softwareVersion} and eventCodes [${cpe.lastEventCodes}]"
+                registry.ws.sendToAll post
+                
                 response.addCookie(cookie)
                 response.setHeader('Server', 'MosesACS 0.1 by Luca Cervasio')
                 response.setContentType("text/xml")

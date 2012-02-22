@@ -20,8 +20,10 @@ class MosesACS {
         Handler handler = new CWMPHandler()
         server.setHandler(handler)
 
-        WebSocket ws = new WebSocket(9999)
-        ws.start();
+        def registry = Registry.getInstance()
+
+        registry.ws = new WebSocket(9999)
+        registry.ws.start();
         
         server.start()
         server.join()
