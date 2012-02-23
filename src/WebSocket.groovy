@@ -21,7 +21,23 @@ class WebSocket extends WebSocketServer {
 
     public void onClientMessage(net.tootallnate.websocket.WebSocket conn, String message) {
         println "new incoming message: <${message}>"
-        conn.send message.reverse()
+        if (message.startsWith("get")) {
+            def serial = "1"
+            Event event = new Event(message: message, params: ['DeviceInfo.'])
+            Registry registry = Registry.getInstance()
+
+            if (registry.cpes.containsKey(serial)) {
+                registry.cpes[serial]['queue'].add(event)
+                // trigger connection request if not yet connected
+                conn.send("command enqueued with id ${event.id}")
+            } else {
+                // cpe unknown
+                conn.send("cpe ${serial} unknown. aborting.")
+            }
+        } else {
+            conn.send message.reverse()
+        }
+
     }
 
 }

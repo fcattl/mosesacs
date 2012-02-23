@@ -2,18 +2,19 @@
 
 class CPE {
 
-    String  serial
-    //String  macAddress
-    String  manufacturer
-    String  softwareVersion
-    String  hardwareVersion
-    String  IPAddress
-    Date    lastInformTS
-    String  cookie
-    String  connectionRequestURL
-    String  lastEventCodes
+    def serial
+    def manufacturer
+    def softwareVersion
+    def hardwareVersion
+    def IPAddress
+    def lastInformTS
+    def cookie
+    def connectionRequestURL
+    def lastEventCodes
 
-    static constraints = {
-        serial(unique: true)
-    }
+    def queue = []
+    
+    
+    
+
 }

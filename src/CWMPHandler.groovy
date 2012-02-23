@@ -74,10 +74,12 @@ class CWMPHandler extends AbstractHandler {
                         parameterKey = val
                     }
                 }
+                Registry registry = Registry.getInstance()
+                def cpe
 
-//                CPE cpe = CPE.findBySerial(serialNumber)
-                CPE cpe
-                if (!cpe) {
+                if (registry.cpes.containsKey(serialNumber)) {
+                    cpe = registry.cpes[serialNumber]
+                } else {
                     // non trovata
                     cpe = new CPE()
                     cpe.serial = serialNumber
@@ -95,24 +97,24 @@ class CWMPHandler extends AbstractHandler {
                 cpe.softwareVersion = softwareVersion
                 cpe.hardwareVersion = hardwareVersion
                 cpe.connectionRequestURL = connectionRequestURL
-//                cpe.save()
+
+                registry.cpes[cpe.serial] = cpe
 
                 def cookie = new Cookie('MosesAcsSession', cpe.cookie)
                 cookie.path = '/'
                 cookie.maxAge = 60*60*24*365*5  // 5 anni
 
-//                SemaphoreService.aggiungiValue(serialNumber, ['ip': request.getRemoteAddr()])
-
                 println "New connection from CPE (sn ${cpe.serial}) with sw ${cpe.softwareVersion} and eventCodes [${cpe.lastEventCodes}]"
 
                 // build response
                 CWMPMessageFactory mf = new CWMPMessageFactory()
-                Registry registry = Registry.getInstance()
-                
+
                 println "Sending InformResponse, cookie = <${cpe.cookie}>"
                 registry.ws.sendToAll "New connection from CPE (sn ${cpe.serial}) with sw ${cpe.softwareVersion} and eventCodes [${cpe.lastEventCodes}]"
                 registry.ws.sendToAll post
-                
+
+                registry.cookies[cpe.cookie] = cpe.serial
+
                 response.addCookie(cookie)
                 response.setHeader('Server', 'MosesACS 0.1 by Luca Cervasio')
                 response.setContentType("text/xml")
@@ -124,17 +126,47 @@ class CWMPHandler extends AbstractHandler {
             } else if (RPCMethod == "GetRPC") {
 
             } else if (RPCMethod == "GetParameterValuesResponse") {
-
+                println post
             }
         } else {
+            // Got Empty Post. Now check for any event to send, otherwise 204
             println "Got Empty Post from CPE at IP " + request.getRemoteAddr()
-            // parlo se ho da dire qualcosa altrimenti chiudo
 
-            println "Got nothing to say, sending 204 No Content"
-            response.setHeader('Server', 'MosesACS 0.1 by Luca Cervasio')
-//            response.setHeader( "Content-Length", "0" )
-            response.setContentType("text/xml")
-            response.setStatus(HttpServletResponse.SC_NO_CONTENT)
+            def cookies = request.getCookies()
+            def cookie
+            cookies.each {
+                if (it.getName() == "MosesAcsSession")
+                    cookie = it
+            }
+
+            Registry registry = Registry.getInstance()
+            def serial = registry.cookies[cookie.getValue()]
+            println "trovato serial " + serial
+            def cpe = registry.cpes[serial]
+            println cpe
+            println cpe['queue']
+
+            println "queue size "+ cpe['queue'].size()
+
+            if (cpe['queue'].size() > 0) {
+                Event event = cpe['queue'].get(0)
+                CWMPMessageFactory mf = new CWMPMessageFactory()
+
+                println "Sending GetParameterValues"
+                response.setHeader('Server', 'MosesACS 0.1 by Luca Cervasio')
+                cookie.path = '/'
+                cookie.maxAge = 60*60*24*365*5  // 5 anni
+                response.addCookie(cookie)
+                response.setContentType("text/xml")
+                response.setStatus(HttpServletResponse.SC_OK)
+                response.getWriter().println( mf.GetParameterValues(['ciao', 'turbo']) )
+            } else {
+                println "Got nothing to say, sending 204 No Content"
+                response.setHeader('Server', 'MosesACS 0.1 by Luca Cervasio')
+                // response.setHeader( "Content-Length", "0" )
+                response.setContentType("text/xml")
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT)
+            }
         }
     }
 
