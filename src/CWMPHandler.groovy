@@ -24,11 +24,14 @@ class CWMPHandler extends AbstractHandler {
         }
 
         String post = request.reader.text
+        def xml
+        def RPCMethod
         if (request.getContentLength() > 0) {
-            def xml = new XmlSlurper().parseText(post).declareNamespace(soap: 'http://schemas.xmlsoap.org/soap/envelope/', cwmp: 'urn:dslforum-org:cwmp-1-0')
-
-            String RPCMethod = xml.Body.children()[0].name()
-
+            xml = new XmlSlurper().parseText(post).declareNamespace(soap: 'http://schemas.xmlsoap.org/soap/envelope/', cwmp: 'urn:dslforum-org:cwmp-1-0')
+            RPCMethod = xml.Body.children()[0].name()
+        }
+        
+        if (RPCMethod in ['Inform', 'TransferComplete', 'GetRPC']) {
             println "Got <${RPCMethod}> from CPE at IP " + request.getRemoteAddr()
 
             if (RPCMethod == "Inform") {
@@ -125,13 +128,18 @@ class CWMPHandler extends AbstractHandler {
 
             } else if (RPCMethod == "GetRPC") {
 
-            } else if (RPCMethod == "GetParameterValuesResponse") {
-                println post
             }
         } else {
-            // Got Empty Post. Now check for any event to send, otherwise 204
-            println "Got Empty Post from CPE at IP " + request.getRemoteAddr()
+            Registry registry = Registry.getInstance()
 
+            if (RPCMethod == "GetParameterValuesResponse") {
+                println post
+                registry.ws.sendToAll(post)
+            } else if (request.getContentLength() == 0) {
+                println "Got Empty Post from CPE at IP " + request.getRemoteAddr()
+            }
+
+            // Got Empty Post or a Response. Now check for any event to send, otherwise 204
             def cookies = request.getCookies()
             def cookie
             cookies.each {
@@ -139,7 +147,6 @@ class CWMPHandler extends AbstractHandler {
                     cookie = it
             }
 
-            Registry registry = Registry.getInstance()
             def serial = registry.cookies[cookie.getValue()]
             println "trovato serial " + serial
             def cpe = registry.cpes[serial]
@@ -149,7 +156,7 @@ class CWMPHandler extends AbstractHandler {
             println "queue size "+ cpe['queue'].size()
 
             if (cpe['queue'].size() > 0) {
-                Event event = cpe['queue'].get(0)
+                Event event = cpe['queue'].remove(0)
                 CWMPMessageFactory mf = new CWMPMessageFactory()
 
                 println "Sending GetParameterValues"
@@ -163,6 +170,9 @@ class CWMPHandler extends AbstractHandler {
             } else {
                 println "Got nothing to say, sending 204 No Content"
                 response.setHeader('Server', 'MosesACS 0.1 by Luca Cervasio')
+                cookie.path = '/'
+                cookie.maxAge = 60*60*24*365*5  // 5 anni
+                response.addCookie(cookie)
                 // response.setHeader( "Content-Length", "0" )
                 response.setContentType("text/xml")
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT)
