@@ -1,10 +1,9 @@
+package org.mosesacs
+
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.bio.SocketConnector
-import net.tootallnate.websocket.Handshakedata
-import net.tootallnate.websocket.WebSocketServer
-import org.mortbay.jetty.security.Constraint
 
 class MosesACS {
 

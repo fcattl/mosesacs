@@ -1,3 +1,5 @@
+package org.mosesacs
+
 import net.tootallnate.websocket.WebSocketServer
 import net.tootallnate.websocket.Handshakedata
 

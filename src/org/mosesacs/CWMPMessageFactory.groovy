@@ -1,3 +1,4 @@
+package org.mosesacs
 
 import groovy.xml.XmlUtil
 import groovy.xml.StreamingMarkupBuilder

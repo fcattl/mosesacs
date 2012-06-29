@@ -1,3 +1,4 @@
+package org.mosesacs
 
 class Registry {
 

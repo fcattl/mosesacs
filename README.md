@@ -1,10 +1,10 @@
 README
 ======
 
-What is MosesACS?
+What is org.mosesacs.MosesACS?
 ----------------
 
-MosesACS is a standalone ACS daemon which implements the CWMP
+org.mosesacs.MosesACS is a standalone ACS daemon which implements the CWMP
 TR-069 standard.
 It's written in groovy and is designed to be a portable/standalone
 easy to use and zero-conf application, which enables you to

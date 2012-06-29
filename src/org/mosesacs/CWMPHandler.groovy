@@ -1,3 +1,5 @@
+package org.mosesacs
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,7 +18,7 @@ class CWMPHandler extends AbstractHandler {
         base_request.setHandled(true)
 
         if (target != '/acs') {
-            response.setHeader('Server', 'MosesACS 0.1 by Luca Cervasio')
+            response.setHeader('Server', 'org.mosesacs.MosesACS 0.1 by Luca Cervasio')
             response.setContentType("text/html")
             response.setStatus(HttpServletResponse.SC_NOT_FOUND)
             response.getWriter().println( 'Not Found' )
@@ -32,7 +34,7 @@ class CWMPHandler extends AbstractHandler {
         }
         
         if (RPCMethod in ['Inform', 'TransferComplete', 'GetRPC']) {
-            println "Got <${RPCMethod}> from CPE at IP " + request.getRemoteAddr()
+            println "Got <${RPCMethod}> from org.mosesacs.CPE at IP " + request.getRemoteAddr()
 
             if (RPCMethod == "Inform") {
 
@@ -107,19 +109,19 @@ class CWMPHandler extends AbstractHandler {
                 cookie.path = '/'
                 cookie.maxAge = 60*60*24*365*5  // 5 anni
 
-                println "New connection from CPE (sn ${cpe.serial}) with sw ${cpe.softwareVersion} and eventCodes [${cpe.lastEventCodes}]"
+                println "New connection from org.mosesacs.CPE (sn ${cpe.serial}) with sw ${cpe.softwareVersion} and eventCodes [${cpe.lastEventCodes}]"
 
                 // build response
                 CWMPMessageFactory mf = new CWMPMessageFactory()
 
                 println "Sending InformResponse, cookie = <${cpe.cookie}>"
-                registry.ws.sendToAll "New connection from CPE (sn ${cpe.serial}) with sw ${cpe.softwareVersion} and eventCodes [${cpe.lastEventCodes}]"
+                registry.ws.sendToAll "New connection from org.mosesacs.CPE (sn ${cpe.serial}) with sw ${cpe.softwareVersion} and eventCodes [${cpe.lastEventCodes}]"
                 registry.ws.sendToAll post
 
                 registry.cookies[cpe.cookie] = cpe.serial
 
                 response.addCookie(cookie)
-                response.setHeader('Server', 'MosesACS 0.1 by Luca Cervasio')
+                response.setHeader('Server', 'org.mosesacs.MosesACS 0.1 by Luca Cervasio')
                 response.setContentType("text/xml")
                 response.setStatus(HttpServletResponse.SC_OK)
                 response.getWriter().println( mf.InformResponse() )
@@ -136,7 +138,7 @@ class CWMPHandler extends AbstractHandler {
                 println post
                 registry.ws.sendToAll(post)
             } else if (request.getContentLength() == 0) {
-                println "Got Empty Post from CPE at IP " + request.getRemoteAddr()
+                println "Got Empty Post from org.mosesacs.CPE at IP " + request.getRemoteAddr()
             }
 
             // Got Empty Post or a Response. Now check for any event to send, otherwise 204
@@ -153,6 +155,20 @@ class CWMPHandler extends AbstractHandler {
             println cpe
             println cpe['queue']
 
+            String[] roots = ['/Users/lc/devel/test/org/mosesacs/adbb']
+            def engine = new GroovyScriptEngine(roots)
+
+            // Load the class and create an instance
+            def pluginClass = engine.loadScriptByName('swisscom.groovy')
+            def plugin = pluginClass.newInstance()
+
+            // Use the object
+            try {
+                plugin.prova()
+            } catch (Exception e) {
+                println "plugin has errors " + e.getMessage()
+            }
+
             println "queue size "+ cpe['queue'].size()
 
             if (cpe['queue'].size() > 0) {
@@ -160,7 +176,7 @@ class CWMPHandler extends AbstractHandler {
                 CWMPMessageFactory mf = new CWMPMessageFactory()
 
                 println "Sending GetParameterValues"
-                response.setHeader('Server', 'MosesACS 0.1 by Luca Cervasio')
+                response.setHeader('Server', 'org.mosesacs.MosesACS 0.1 by Luca Cervasio')
                 cookie.path = '/'
                 cookie.maxAge = 60*60*24*365*5  // 5 anni
                 response.addCookie(cookie)
@@ -169,7 +185,7 @@ class CWMPHandler extends AbstractHandler {
                 response.getWriter().println( mf.GetParameterValues(['ciao', 'turbo']) )
             } else {
                 println "Got nothing to say, sending 204 No Content"
-                response.setHeader('Server', 'MosesACS 0.1 by Luca Cervasio')
+                response.setHeader('Server', 'org.mosesacs.MosesACS 0.1 by Luca Cervasio')
                 cookie.path = '/'
                 cookie.maxAge = 60*60*24*365*5  // 5 anni
                 response.addCookie(cookie)
